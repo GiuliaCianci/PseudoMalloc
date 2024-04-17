@@ -7,7 +7,7 @@ int BitMap_getBytes(int bits){
 }
 
 // initializes a bitmap on an external array
-void BitMap_init(BitMap* bit_map, int num_bits, uint8_t* buffer){
+void BitMap_init(BitMap* bit_map, uint8_t* buffer, int num_bits){
   bit_map->buffer=buffer;
   bit_map->num_bits=num_bits;
   bit_map->buffer_size=BitMap_getBytes(num_bits);
@@ -18,20 +18,20 @@ void BitMap_init(BitMap* bit_map, int num_bits, uint8_t* buffer){
 void BitMap_setBit(BitMap* bit_map, int bit_num, int status){
   // get byte
   int byte_num=bit_num>>3;
-  assert(byte_num<bit_map->buffer_size);     //<= !!!!!!
-  int bit_in_byte=byte_num&0x03;          // =bit_num % 8; !!!
-  if (status) {
-    bit_map->buffer[byte_num] |= (1<<bit_in_byte);
+  assert(byte_num<bit_map->buffer_size);    //<= !!!!!!
+  int bit_in_byte=byte_num&0x03;    	    // =bit_num % 8; !!!
+  if (status) {								//status != 0
+    bit_map->buffer[byte_num] |= (1<<bit_in_byte); // bitwise OR: set bit
   } else {
-    bit_map->buffer[byte_num] &= ~(1<<bit_in_byte);
+    bit_map->buffer[byte_num] &= ~(1<<bit_in_byte); //bitwise AND NOT: clear bit
   }
 }
 
 // inspects the status of the bit bit_num
-int BitMap_bit(const BitMap* bit_map, int bit_num){
-  int byte_num=bit_num>>3; 
+int BitMap_bit(const BitMap* bit_map, int bit_num){ //bit_num: index of the bit to inspect
+  int byte_num=bit_num>>3; 		//equivalent to dividing by 8
   assert(byte_num<bit_map->buffer_size);          //<=
-  int bit_in_byte=byte_num&0x03;         // =bit_num % 8; !!!
+  int bit_in_byte=byte_num % 8;
   return (bit_map->buffer[byte_num] & (1<<bit_in_byte))!=0;
 }
 
