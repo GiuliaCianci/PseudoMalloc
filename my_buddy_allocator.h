@@ -7,16 +7,11 @@
 
 //single buddy
 
-typedef struct{
-	struct Block* next;	//puntatore al prossimo blocco
-	int size;			//dimensione blocco in byte
-}Block;
-
 typedef struct  {
   char* memory;		//memoria gestita dall'allocator
   int memory_size;		//dimensione memoria
   int num_levels;		//numero di livelli
-  Block* free_list[MAX_LEVELS];	//lista dei blocchi liberi
+  size_t free_list[MAX_LEVELS];	//lista dei blocchi liberi
   BitMap* bitmap;       // Bitmap per tenere traccia dello stato dei blocchi (libero o allocato)
 } BuddyAllocator;
 
