@@ -1,32 +1,36 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdint.h>
-#include <assert.h>
-#include <math.h>
-#include <assert.h>
 #include "my_buddy_allocator.h"
-#include "bit_map.h"
+#include <stdio.h>
 
-int main() {
-    char memory[1024]; // Memory for the buddy allocator
-    BitMap bitmap; // Bitmap for tracking block allocation
-    BitMap_init(&bitmap, (uint8_t*)memory, 1024); // Initialize the bitmap
+#define BUFFER_SIZE 102400
+#define BUDDY_LEVELS 9
+#define MEMORY_SIZE (1024*1024)
+#define MIN_BUCKET_SIZE (MEMORY_SIZE>>(BUDDY_LEVELS))
 
-    BuddyAllocator buddyAllocator;
-    BuddyAllocator_init(&buddyAllocator, memory, 10, &bitmap); // Initialize the buddy allocator
+char buffer[BUFFER_SIZE]; // 100 Kb buffer to handle memory should be enough
+char memory[MEMORY_SIZE];
 
-    // Test allocation and deallocation
-    void* ptr1 = BuddyAllocator_malloc(&buddyAllocator, 64);
-    printf("Allocated memory at address: %p\n", ptr1);
+BuddyAllocator alloc;
+BitMap bitmap;
+int main(int argc, char** argv) {
 
-    void* ptr2 = BuddyAllocator_malloc(&buddyAllocator, 128);
-    printf("Allocated memory at address: %p\n", ptr2);
+  //1 we see if we have enough memory for the buffers
+  int req_size=BuddyAllocator_calcSize(BUDDY_LEVELS);
+  printf("size requested for initialization: %d/BUFFER_SIZE\n", req_size);
 
-    BuddyAllocator_free(&buddyAllocator, ptr1);
-    printf("Freed memory at address: %p\n", ptr1);
 
-    void* ptr3 = BuddyAllocator_malloc(&buddyAllocator, 32);
-    printf("Allocated memory at address: %p\n", ptr3);
+  //2 we initialize the allocator
+  printf("init... \n");
+  BuddyAllocator_init(&alloc, memory, BUDDY_LEVELS, &bitmap);
+  printf("DONE\n");
+  printf("printing BitMap...\n");
+  printBitMap(&bitmap);
+  printf("DONE\n");
 
-    return 0;
+  void* p1=BuddyAllocator_malloc(&alloc, 100);
+  void* p2=BuddyAllocator_malloc(&alloc, 100);
+  void* p3=BuddyAllocator_malloc(&alloc, 100000);
+  BuddyAllocator_free(&alloc, p1);
+  BuddyAllocator_free(&alloc, p2);
+  BuddyAllocator_free(&alloc, p3);
+  
 }
