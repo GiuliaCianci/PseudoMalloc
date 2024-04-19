@@ -8,21 +8,25 @@
 #include <stdlib.h>
 
 
-
-
 extern BuddyAllocator alloc;
+largeMem stored = {NULL, 0};
 void* req;
-size_t request;
+
 
 //allocates
 void* pseudo_malloc(size_t request){
 	if(request < 0 ) fprintf(stderr, "Request can't be less than 0\n");
+	
 	if(request == 0) return NULL;
+	
+	//small request ---> buddy allocator
 	if(request < PAGE_SIZE/4){
 		printf("Small request, use BuddyAllocator..\n");
 		req = BuddyAllocator_malloc(&alloc, request);
-		return req;
-	}else if(request >= PAGE_SIZE/4){
+		return req;		
+	}
+	//large request ---> mmap
+	else if(request >= PAGE_SIZE/4){
 		printf("Large request, use mmap...\n");
 		//anonymous mapping, not connected to a file. filedes and offset are ignored, its contents are initialized to zero.
 		req = mmap(0, request, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
@@ -30,7 +34,11 @@ void* pseudo_malloc(size_t request){
 			perror("mmap");
 			exit(EXIT_FAILURE);
 		}
-		return req;
+		//storing allocated memory
+		 stored.size = request;
+		 stored.memory = req;
+		 
+		return stored.memory;
 	}
 	return NULL;
 }
@@ -46,10 +54,8 @@ void pseudo_free(void* mem) {
         BuddyAllocator_free(&alloc, mem);
     } else{
 		//i need to store size of allocated memory
-		size_t size_to_free;
 		
-		
-		if(munmap(mem, size_to_free) == -1) {
+		if(munmap(stored.memory, stored.size) == -1) {
             perror("munmap");
             exit(EXIT_FAILURE);
         }

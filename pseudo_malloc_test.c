@@ -41,8 +41,6 @@ int main(int agrc, char **argv) {
     pseudo_free(large_ptr); // Free large allocation
 
 	
-
-//THIS WORKS-------------------------------------------------------------------
     printf("[MAIN]: Allocating all memory with blocks of 1024 size... and 5 more\n");
 
     void *ptrs[1029];
@@ -99,14 +97,12 @@ int main(int agrc, char **argv) {
     pseudo_free(new1);
     pseudo_free(new2);
  
-//------------------------------------------------------------------------
 
-printf("\n\n\n\n\n\n\n\n\n\n\n\n------------TEST---------------\n\n\n\n\n\n\n\n\n\n\n\n");
     printf("[MAIN]: Freed all memory, sanity check, printing all 1's in the bitmap, there sould be no prints\n");
     printf("[MAIN]: printing... ");
     printBitMap(&alloc.bitmap);
     printf("\n");
-/*
+
     printf("[MAIN]: Now let's do some fragmentation: 1024 allocations of 513\n");
     for(int i = 0; i < 1024; ++i){
         ptrs[i] = pseudo_malloc(513);
@@ -129,6 +125,7 @@ printf("\n\n\n\n\n\n\n\n\n\n\n\n------------TEST---------------\n\n\n\n\n\n\n\n\
         pseudo_free(ptrs[i]);
         printf("[MAIN]: Freed ptr %d  %p\n", i, ptrs[i]);
     }
+
     printf("[MAIN]: Freed all memory, sanity check, printing all 1's in the bitmap, there sould be no prints\n");
     printf("[MAIN]: printing... ");
     printBitMap(&alloc.bitmap);
@@ -146,8 +143,8 @@ printf("\n\n\n\n\n\n\n\n\n\n\n\n------------TEST---------------\n\n\n\n\n\n\n\n\
         printf("Freeing ptr %i  %p\n", i, ptrs[i]);
         pseudo_free(ptrs[i]);
     }
-*/
-    printf("Done\n");
+
+    printf("END\n");
 
 }
 
