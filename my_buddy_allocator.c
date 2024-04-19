@@ -32,14 +32,13 @@ int BuddyAllocator_calcSize(int num_levels) {
 }
 
 
-void BuddyAllocator_init(BuddyAllocator* alloc, char* memory, int num_levels,
-						BitMap *bitmap){
+void BuddyAllocator_init(BuddyAllocator* alloc, char* memory, BitMap *bitmap){
 
   // we need room also for level 0
-  alloc->num_levels=num_levels;
+  alloc->num_levels=MAX_LEVELS+1;
   alloc->memory=memory;
   alloc->bitmap = *bitmap;
-  assert (num_levels<MAX_LEVELS+1);
+  
   int num_nodes =(1 << (MAX_LEVELS+1))-1;	//num nodi albero binario
   
   BitMap_init(&alloc->bitmap, (uint8_t*)memory, num_nodes);
@@ -49,7 +48,7 @@ void BuddyAllocator_init(BuddyAllocator* alloc, char* memory, int num_levels,
         alloc->free_list[i] = (1 << i);
 }
   printf("BUDDY INITIALIZING\n");
-  printf("\tlevels: %d\n", num_levels);
+  printf("\tlevels: %d\n", alloc->num_levels);
  }
   
 

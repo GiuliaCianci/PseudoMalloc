@@ -36,13 +36,23 @@ void* pseudo_malloc(size_t request){
 }
 
 //releases allocated memory
-void pseudo_free(void* req){
-	if(req == NULL) return;
-	
-	//Buddy_free
-	BuddyAllocator_free(&alloc, req);
-	
-	//munmap
-	munmap(req, request);
-	printf("DONE\n");
+
+void pseudo_free(void* mem) {
+    if (mem == NULL) return;
+
+    // Check if the memory was allocated by the buddy allocator or mmap
+    if (req == mem) {
+        // If allocated by the buddy allocator, free using BuddyAllocator_free
+        BuddyAllocator_free(&alloc, mem);
+    } else{
+		//i need to store size of allocated memory
+		size_t size_to_free;
+		
+		
+		if(munmap(mem, size_to_free) == -1) {
+            perror("munmap");
+            exit(EXIT_FAILURE);
+        }
+	}
+    printf("DONE\n");
 }
