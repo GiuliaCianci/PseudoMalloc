@@ -25,7 +25,7 @@ libbuddy.a: $(OBJS)
 	$(RM) $(OBJS)
 
 pseudo_malloc_test: pseudo_malloc_test.o $(LIBS)
-	$(CC) $(CCOPTS) -o $@ $^ 
+	$(CC) $(CCOPTS) -o $@ $^ -lm
 
 bit_map_test: bit_map_test.o $(LIBS)
 	$(CC) $(CCOPTS) -o $@ $^ -lm

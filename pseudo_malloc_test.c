@@ -18,7 +18,7 @@ char buffer[PAGE_SIZE];
 char memory[BITMAP_MEMORY];
 
 
-int main(int agrc, char **argv) {
+int main(int argc, char **argv) {
 	
 	printf("Main: buddy_init...\n");
 	BuddyAllocator_init(&alloc, memory, &bitmap);

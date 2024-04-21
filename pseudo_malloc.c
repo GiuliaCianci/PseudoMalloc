@@ -9,7 +9,7 @@
 
 
 extern BuddyAllocator alloc;
-largeMem stored = {NULL, 0};
+LargeMem stored;
 void* req;
 
 

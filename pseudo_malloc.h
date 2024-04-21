@@ -2,6 +2,7 @@
 #include "my_buddy_allocator.h"
 #include <stdio.h>
 #include <stdint.h>
+#include <stdlib.h>
 #include <math.h>
 
 #define PAGE_SIZE 4096		//stackoverflow bytes
@@ -11,7 +12,7 @@
 typedef struct{
 	void* memory;
 	size_t size;
-}largeMem;
+}LargeMem;
 
 //allocates size_t bytes of memory requested
 void* pseudo_malloc(size_t request);
