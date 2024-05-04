@@ -2,52 +2,23 @@
 #include <assert.h>
 #include <math.h> // for floor and log2
 #include "my_buddy_allocator.h"
+#include "bit_map.h"
 
-// these are trivial helpers to support you in case you want
-// to do a bitmap implementation
-int levelIdx(size_t idx){
-  return (int)floor(log2(idx));
-};
-
-int buddyIdx(int idx){
-  if (idx&0x1){
-    return idx-1;
-  }
-  return idx+1;
-}
-
-int parentIdx(int idx){
-  return idx/2;
-}
-
-int startIdx(int idx){
-  return (idx-(1<<levelIdx(idx)));
-}
-int BuddyAllocator_calcSize(int num_levels) {
-    // Calculate the size of the BuddyAllocator structure
-    int allocator_size = sizeof(BuddyAllocator);
-
-    // Return the total size required
-    return allocator_size;
-}
-
-
-void BuddyAllocator_init(BuddyAllocator* alloc, char* memory, BitMap *bitmap){
+void BuddyAllocator_init(BuddyAllocator* alloc, char* memory, uint8_t *bitmap){
+	
+	int num_nodes =(1 << (MAX_LEVELS+1))-1;	//num nodi albero binario
+	BitMap_init(&alloc->bitmap, num_nodes, bitmap);
 
   // we need room also for level 0
   alloc->num_levels=MAX_LEVELS+1;
   alloc->memory=memory;
-  alloc->bitmap = *bitmap;
   
-  int num_nodes =(1 << (MAX_LEVELS+1))-1;	//num nodi albero binario
-  
-  BitMap_init(&alloc->bitmap, (uint8_t*)memory, num_nodes);
-  
+ 
   // initialize the number of blocks at each level
     for(int i = 0; i < MAX_LEVELS+1; ++i){
-        alloc->free_list[i] = (1 << i);
+        alloc->free_list[i] = (1 << i);	//2^i
 }
-  printf("BUDDY INITIALIZING\n");
+  printf("BUDDY INITIALIZED\n");
   printf("\tlevels: %d\n", alloc->num_levels);
  }
   
@@ -56,82 +27,67 @@ void BuddyAllocator_init(BuddyAllocator* alloc, char* memory, BitMap *bitmap){
 //allocates memory
 void* BuddyAllocator_malloc(BuddyAllocator* buddyAllocator, int size) {
   // we determine the level of the page based on requested size
-  int level = 0;
-  int blockSize = 1;
-  while (blockSize < size) {
-	  blockSize <<= 1; // Equivalent to multiplying by 2, shifts the bits left
-	  level++;
-	}
-	level = MAX_LEVELS - level;
+  int level = MAX_LEVELS - ceil(log2(size));
 
-  // if the level is too small, we pad it to max
+  // if the level is greater than the max level, we pad it to max
   if (level>buddyAllocator->num_levels)
     level=buddyAllocator->num_levels;
 
-  printf("requested: %d bytes, level %d \n", size, level);
+  printf("[BUDDY_MALLOC]requested: %d bytes, level %d \n", size, level);
 
 	int num_nodes = buddyAllocator->free_list[level];
+	printf("BUDDY: num_node %d\n", num_nodes);
 	
     // Find the first available block of the specified level
-    size_t available_bit = 0;
-    while (available_bit < num_nodes &&
-           BitMap_bit(&buddyAllocator->bitmap, (1 << level) + available_bit)){
-        available_bit++;
+    size_t offset = 0;
+    while (offset < num_nodes &&
+           BitMap_bit(&buddyAllocator->bitmap, (1 << level) + offset)){
+        offset++;
     }
 
     // If no available block is found, return NULL
-    if (available_bit >= num_nodes){
+    if (offset >= num_nodes){
         printf("[BuddyMalloc]: No more memory available, returning NULL\n");
         return NULL;
     }
 
     // Calculate the starting index of the allocated block in the bitmap
-    available_bit = (1 << level) + available_bit;
-
+    size_t available_bit = (1 << level) + offset;
+	
     // Mark the block as allocated in the BitMap
-    BitMap_setBit(&buddyAllocator->bitmap, available_bit, 1);
     
-    // Find and mark the buddy index as allocated if it's available
-    size_t buddy_bit = buddyIdx(available_bit);
-    if (buddy_bit < num_nodes &&
-        !BitMap_bit(&buddyAllocator->bitmap, buddy_bit)) {
-        BitMap_setBit(&buddyAllocator->bitmap, buddy_bit, 1);
-    }
+    SetBit_down(&buddyAllocator->bitmap,available_bit, 1);
+    
+    SetBit_up(&buddyAllocator->bitmap,available_bit, 1);
 
     // Calculate the starting address of the allocated block
     size_t block_start = (startIdx(available_bit) * (1 << (buddyAllocator->num_levels - levelIdx(available_bit))));
     
     return (void *)(&buddyAllocator->memory + block_start);
-
+    
 }
+
 
 
 //releases allocated memory
 void BuddyAllocator_free(BuddyAllocator* alloc, void* mem) {
+	if(mem==NULL) return;
+	
 	printf("freeing %p\n", mem);
+	
 	// Calculate the index of the block in the bitmap
-    size_t block_idx = (size_t)((char*)mem - alloc->memory);
+    size_t block_idx = (size_t)((char*)mem - alloc->memory)+1;
 
     // Calculate the level and starting index of the block in the bitmap
     int level = levelIdx(block_idx);
-    size_t start_bit = block_idx >> level;
-
-    // Mark the block as free in the bitmap
-    BitMap_setBit(&alloc->bitmap, start_bit, 0);
-
-    // Check if the buddy of the freed block is also free
-    while (level < alloc->num_levels - 1) {
-        size_t buddy_idx = buddyIdx(start_bit);
-        size_t parent_idx = parentIdx(start_bit);
-        int buddy_free = !BitMap_bit(&alloc->bitmap, buddy_idx);
-
-        if (buddy_free) {
-            // Merge the buddy block with the freed block
-            BitMap_setBit(&alloc->bitmap, parent_idx, 0);
-            start_bit = parent_idx;
-            level++;
-        } else {
-            break; // Buddy block is not free, stop merging
-        }
-    }
+    size_t bit_num = block_idx >> level;
+	
+    SetBit_down(&alloc->bitmap,bit_num, 0);
+    
+    SetBit_up(&alloc->bitmap,bit_num, 0);
+    
+	printf("printing BitMap...\n");
+	printBitMap(&alloc->bitmap);
+	printf("DONE\n");
+  
 }

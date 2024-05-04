@@ -12,16 +12,15 @@
 
 
 BuddyAllocator alloc;
-BitMap bitmap;
+uint8_t bitmap[((1 << MAX_LEVELS) +1)];
 
-char buffer[PAGE_SIZE]; 
 char memory[BITMAP_MEMORY];
 
 
 int main(int argc, char **argv) {
 	
 	printf("Main: buddy_init...\n");
-	BuddyAllocator_init(&alloc, memory, &bitmap);
+	BuddyAllocator_init(&alloc, memory, bitmap);
 	printf("Main: Done\n");
 	
     printf("[MAIN]: Initialized BuddyAllocator:\n\tBitMap length in bits --> %d \n", (&alloc)->bitmap.num_bits);
@@ -29,6 +28,7 @@ int main(int argc, char **argv) {
     printf("[MAIN]: Beginning of memory: %p\n", memory);
 
     // Example usage
+    
     printf("Main: small allocation...\n");
     void* small_ptr = pseudo_malloc(100); // Small allocation
     printf("MainDone: Small pointer: %p\n", small_ptr);

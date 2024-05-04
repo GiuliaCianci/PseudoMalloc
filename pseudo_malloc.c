@@ -60,5 +60,5 @@ void pseudo_free(void* mem) {
             exit(EXIT_FAILURE);
         }
 	}
-    printf("DONE\n");
+    printf("FREE DONE\n");
 }

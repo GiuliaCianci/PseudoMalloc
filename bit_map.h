@@ -1,5 +1,7 @@
 #pragma once
 #include <stdint.h>
+#include <math.h>
+#include <stdio.h>
 
 // simple bit array
 typedef struct  {
@@ -12,9 +14,9 @@ typedef struct  {
 int BitMap_getBytes(int bits);
 
 // initializes a bitmap on an external array
-void BitMap_init(BitMap* bit_map, uint8_t* buffer, int num_bits);
-
-// sets a the bit bit_num in the bitmap
+void BitMap_init(BitMap *bit_map, int num_bits, uint8_t *buffer);
+	
+// sets the bit bit_num in the bitmap
 // status= 0 or 1
 void BitMap_setBit(BitMap* bit_map, int bit_num, int status);
 
@@ -22,3 +24,17 @@ void BitMap_setBit(BitMap* bit_map, int bit_num, int status);
 int BitMap_bit(const BitMap* bit_map, int bit_num);
 
 void printBitMap(BitMap *bitmap);
+
+void SetBit_down(BitMap* bit_map, int bit_num, int status);
+
+void SetBit_up(BitMap* bit_map, int bit_num, int status);
+// to do a bitmap implementation
+int levelIdx(size_t idx);
+
+int buddyIdx(int idx);
+
+int parentIdx(int idx);
+
+int startIdx(int idx);
+
+int childIdx(int idx, int left_child);
